@@ -1,5 +1,6 @@
 #pragma once
 
+#include <control_toolbox/pid.h>
 #include <franka/robot_state.h>
 #include <franka_gazebo/joint.h>
 #include <franka_hw/franka_model_interface.h>
@@ -29,6 +30,8 @@ namespace franka_gazebo {
  * ### transmission_interface/SimpleTransmission
  * - hardware_interface/JointStateInterface
  * - hardware_interface/EffortJointInterface
+ * - hardware_interface/PositionJointInterface
+ * - hardware_interface/VelocityJointInterface
  *
  * ### franka_hw/FrankaStateInterface
  * ### franka_hw/FrankaModelInterface
@@ -96,8 +99,14 @@ class FrankaHWSim : public gazebo_ros_control::RobotHWSim {
   gazebo::physics::ModelPtr robot_;
   std::map<std::string, std::shared_ptr<franka_gazebo::Joint>> joints_;
 
+  enum ControlMethod { EFFORT, POSITION, VELOCITY };
+  std::map<std::string, ControlMethod> joint_control_methods_;
+  std::map<std::string, control_toolbox::Pid> pid_controllers_;
+
   hardware_interface::JointStateInterface jsi_;
   hardware_interface::EffortJointInterface eji_;
+  hardware_interface::PositionJointInterface pji_;
+  hardware_interface::VelocityJointInterface vji_;
   franka_hw::FrankaStateInterface fsi_;
   franka_hw::FrankaModelInterface fmi_;
 
@@ -114,6 +123,8 @@ class FrankaHWSim : public gazebo_ros_control::RobotHWSim {
 
   void initJointStateHandle(const std::shared_ptr<franka_gazebo::Joint>& joint);
   void initEffortCommandHandle(const std::shared_ptr<franka_gazebo::Joint>& joint);
+  void initPositionCommandHandle(const std::shared_ptr<franka_gazebo::Joint>& joint);
+  void initVelocityCommandHandle(const std::shared_ptr<franka_gazebo::Joint>& joint);
   void initFrankaStateHandle(const std::string& robot,
                              const urdf::Model& urdf,
                              const transmission_interface::TransmissionInfo& transmission);
