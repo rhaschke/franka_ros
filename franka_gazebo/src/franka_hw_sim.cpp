@@ -41,6 +41,10 @@ bool FrankaHWSim::initSim(const std::string& robot_namespace,
 
   ROS_INFO_STREAM_NAMED("franka_hw_sim", "Using physics type " << physics->GetType());
 
+  // Retrieve physics parameters
+  auto gravity_ = physics->World()->Gravity();
+  this->gravity_earth_ = {gravity_.X(), gravity_.Y(), gravity_.Z()};
+
   // Generate a list of franka_gazebo::Joint to store all relevant information
   for (const auto& transmission : transmissions) {
     if (transmission.type_ != "transmission_interface/SimpleTransmission") {
@@ -307,7 +311,7 @@ void FrankaHWSim::readSim(ros::Time time, ros::Duration period) {
 }
 
 void FrankaHWSim::writeSim(ros::Time /*time*/, ros::Duration /*period*/) {
-  auto g = this->model_->gravity(this->robot_state_);
+  auto g = this->model_->gravity(this->robot_state_, this->gravity_earth_);
 
   for (auto& pair : this->joints_) {
     auto joint = pair.second;
