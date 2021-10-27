@@ -36,6 +36,9 @@
     <arg name="paused" value="true"/>
     <arg name="gui" value="$(eval not arg('headless'))"/>
     <arg name="use_sim_time" value="true"/>
+    <!-- Remap both, arm and gripper joint states to default ROS topic joint_states -->
+    <remap from="franka_state_controller/joint_states" to="joint_states" />
+    <remap from="franka_gripper/joint_states" to="joint_states" />
   </include>
 
 
