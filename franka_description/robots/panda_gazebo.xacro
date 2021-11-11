@@ -8,7 +8,7 @@
   <!-- || PandaRobot With Retrieval of Feasible Parameters Using    || -->
   <!-- || Penalty-Based Optimization                                || -->
   <!-- || by: Claudio Gaz, Marco Cognetti, Alexander Oliva,         || -->
-  <!-- || Paolo Robuffo Giordano, Alessandro de Lucaa               || -->
+  <!-- || Paolo Robuffo Giordano, Alessandro de Luca                || -->
   <!-- =============================================================== -->
 
   <xacro:macro name="panda_arm" params="arm_id:='panda'">
@@ -300,6 +300,11 @@
                                           izz="0.0017" />
       </inertial>
     </link>
+    <link name="${ns}_hand_coarse" />
+    <joint name="${ns}_hand_coarse_joint" type="fixed">
+      <parent link="${ns}_hand" />
+      <child link="${ns}_hand_coarse" />
+    </joint>
 
     <link name="${ns}_leftfinger">
       <xacro:inertia-cylinder mass="15e-3" radius="0.01" h="0.04"/>
@@ -351,6 +356,7 @@
       <origin xyz="0 0 0.0584" rpy="0 0 0"/>
       <axis xyz="0 -1 0"/>
       <limit effort="20" lower="0.0" upper="0.04" velocity="0.2"/>
+      <mimic joint="${ns}_finger_joint1" />
       <dynamics damping="0.3"/>
     </joint>
   </xacro:macro>
