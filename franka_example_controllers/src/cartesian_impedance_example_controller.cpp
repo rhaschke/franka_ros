@@ -204,18 +204,29 @@ Eigen::Matrix<double, 7, 1> CartesianImpedanceExampleController::saturateTorqueR
 void CartesianImpedanceExampleController::complianceParamCallback(
     franka_example_controllers::compliance_paramConfig& config,
     uint32_t /*level*/) {
+  if (last_common_translational_stiffness_ != config.translational_stiffness)
+    config.translational_x = config.translational_y = config.translational_z =
+        config.translational_stiffness;
+  if (last_common_rotational_stiffness_ != config.rotational_stiffness)
+    config.rotational_x = config.rotational_y = config.rotational_z = config.rotational_stiffness;
+
+  last_common_translational_stiffness_ = config.translational_stiffness;
+  last_common_rotational_stiffness_ = config.rotational_stiffness;
+
   cartesian_stiffness_target_.setIdentity();
-  cartesian_stiffness_target_.topLeftCorner(3, 3).diagonal() =
-      config.translational_stiffness * Eigen::Vector3d::Ones();
-  cartesian_stiffness_target_.bottomRightCorner(3, 3).diagonal() =
-      config.rotational_stiffness * Eigen::Vector3d::Ones();
+  cartesian_stiffness_target_.topLeftCorner<3, 3>().diagonal() << config.translational_x,
+      config.translational_y, config.translational_z;
+  cartesian_stiffness_target_.bottomRightCorner<3, 3>().diagonal() << config.rotational_x,
+      config.rotational_y, config.rotational_z;
 
   cartesian_damping_target_.setIdentity();
   // Damping ratio = 1
-  cartesian_damping_target_.topLeftCorner(3, 3).diagonal() =
-      2.0 * sqrt(config.translational_stiffness) * Eigen::Vector3d::Ones();
-  cartesian_damping_target_.bottomRightCorner(3, 3).diagonal() =
-      2.0 * sqrt(config.rotational_stiffness) * Eigen::Vector3d::Ones();
+  cartesian_damping_target_.topLeftCorner<3, 3>().diagonal().noalias() =
+      2.0 * config.translational_damping_ratio *
+      cartesian_stiffness_target_.topLeftCorner<3, 3>().diagonal().cwiseSqrt();
+  cartesian_damping_target_.bottomRightCorner<3, 3>().diagonal().noalias() =
+      2.0 * config.rotational_damping_ratio *
+      cartesian_stiffness_target_.bottomRightCorner<3, 3>().diagonal().cwiseSqrt();
 
   nullspace_stiffness_target_ = config.nullspace_stiffness;
 }

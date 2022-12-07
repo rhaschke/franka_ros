@@ -45,6 +45,8 @@ class CartesianImpedanceExampleController : public controller_interface::MultiIn
   double nullspace_stiffness_{20.0};
   double nullspace_stiffness_target_{20.0};
   const double delta_tau_max_{1.0};
+  double last_common_translational_stiffness_{0.0};
+  double last_common_rotational_stiffness_{0.0};
   Eigen::Matrix<double, 6, 6> cartesian_stiffness_;
   Eigen::Matrix<double, 6, 6> cartesian_stiffness_target_;
   Eigen::Matrix<double, 6, 6> cartesian_damping_;
