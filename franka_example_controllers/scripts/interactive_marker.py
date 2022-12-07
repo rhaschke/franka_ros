@@ -8,7 +8,7 @@ from interactive_markers.interactive_marker_server import \
     InteractiveMarkerServer, InteractiveMarkerFeedback
 from visualization_msgs.msg import InteractiveMarker, \
     InteractiveMarkerControl
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseStamped, Quaternion, Point
 from franka_msgs.msg import FrankaState
 
 marker_pose = PoseStamped()
@@ -42,19 +42,11 @@ def wait_for_initial_pose():
     msg = rospy.wait_for_message("franka_state_controller/franka_states",
                                  FrankaState)  # type: FrankaState
 
-    initial_quaternion = \
-        tf.transformations.quaternion_from_matrix(
-            np.transpose(np.reshape(msg.O_T_EE,
-                                    (4, 4))))
-    initial_quaternion = initial_quaternion / \
-        np.linalg.norm(initial_quaternion)
-    marker_pose.pose.orientation.x = initial_quaternion[0]
-    marker_pose.pose.orientation.y = initial_quaternion[1]
-    marker_pose.pose.orientation.z = initial_quaternion[2]
-    marker_pose.pose.orientation.w = initial_quaternion[3]
-    marker_pose.pose.position.x = msg.O_T_EE[12]
-    marker_pose.pose.position.y = msg.O_T_EE[13]
-    marker_pose.pose.position.z = msg.O_T_EE[14]
+    O_T_EE = np.transpose(np.reshape(msg.O_T_EE, (4, 4)))
+    initial_quaternion = tf.transformations.quaternion_from_matrix(O_T_EE)
+    initial_quaternion = initial_quaternion / np.linalg.norm(initial_quaternion)
+    marker_pose.pose.orientation = Quaternion(*initial_quaternion)
+    marker_pose.pose.position = Point(*O_T_EE[0:3, 3])
 
 
 if __name__ == "__main__":
@@ -64,8 +56,7 @@ if __name__ == "__main__":
 
     wait_for_initial_pose()
 
-    pose_pub = rospy.Publisher(
-        "equilibrium_pose", PoseStamped, queue_size=10)
+    pose_pub = rospy.Publisher("equilibrium_pose", PoseStamped, queue_size=10)
     server = InteractiveMarkerServer("equilibrium_pose_marker")
     int_marker = InteractiveMarker()
     int_marker.header.frame_id = link_name
@@ -80,7 +71,6 @@ if __name__ == "__main__":
     rospy.Timer(rospy.Duration(0.005),
                 lambda msg: publisher_callback(msg, link_name))
 
-    # insert a box
     control = InteractiveMarkerControl()
     control.orientation.w = 1
     control.orientation.x = 1
