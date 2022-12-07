@@ -7,7 +7,6 @@
 #include <memory>
 
 #include <controller_interface/controller_base.h>
-#include <eigen_conversions/eigen_msg.h>
 #include <franka/robot_state.h>
 #include <franka_example_controllers/pseudo_inversion.h>
 #include <franka_hw/trigger_rate.h>
@@ -15,8 +14,8 @@
 #include <pluginlib/class_list_macros.h>
 #include <ros/ros.h>
 #include <ros/transport_hints.h>
-#include <tf/transform_listener.h>
-#include <tf_conversions/tf_eigen.h>
+#include <tf2_eigen/tf2_eigen.h>
+#include <tf2_ros/transform_listener.h>
 
 namespace franka_example_controllers {
 
@@ -147,13 +146,14 @@ bool DualArmCartesianImpedanceExampleController::init(hardware_interface::RobotH
       &DualArmCartesianImpedanceExampleController::complianceParamCallback, this, _1, _2));
 
   // Get the transformation from right_O_frame to left_O_frame
-  tf::StampedTransform transform;
-  tf::TransformListener listener;
+  geometry_msgs::TransformStamped transform;
+  tf2_ros::Buffer tf_buffer;
+  tf2_ros::TransformListener listener(tf_buffer);
   try {
-    if (listener.waitForTransform(left_arm_id_ + "_link0", right_arm_id_ + "_link0", ros::Time(0),
-                                  ros::Duration(4.0))) {
-      listener.lookupTransform(left_arm_id_ + "_link0", right_arm_id_ + "_link0", ros::Time(0),
-                               transform);
+    if (tf_buffer.canTransform(left_arm_id_ + "_link0", right_arm_id_ + "_link0", ros::Time(0),
+                               ros::Duration(4.0))) {
+      transform = tf_buffer.lookupTransform(left_arm_id_ + "_link0", right_arm_id_ + "_link0",
+                                            ros::Time(0));
     } else {
       ROS_ERROR(
           "DualArmCartesianImpedanceExampleController: Failed to read transform from %s to %s. "
@@ -161,11 +161,11 @@ bool DualArmCartesianImpedanceExampleController::init(hardware_interface::RobotH
           (right_arm_id_ + "_link0").c_str(), (left_arm_id_ + "_link0").c_str());
       return false;
     }
-  } catch (tf::TransformException& ex) {
+  } catch (tf2::TransformException& ex) {
     ROS_ERROR("DualArmCartesianImpedanceExampleController: %s", ex.what());
     return false;
   }
-  tf::transformTFToEigen(transform, Ol_T_Or_);  // NOLINT (readability-identifier-naming)
+  tf2::fromMsg(transform, Ol_T_Or_);  // NOLINT (readability-identifier-naming)
 
   // Setup publisher for the centering frame.
   publish_rate_ = franka_hw::TriggerRate(30.0);
@@ -359,7 +359,7 @@ void DualArmCartesianImpedanceExampleController::targetPoseCallback(
     // Set target for the left robot.
     auto& left_arm_data = arms_data_.at(left_arm_id_);
     Eigen::Affine3d Ol_T_C{};  // NOLINT (readability-identifier-naming)
-    tf::poseMsgToEigen(msg->pose, Ol_T_C);
+    tf2::fromMsg(msg->pose, Ol_T_C);
     Eigen::Affine3d Ol_T_EEl_d =      // NOLINT (readability-identifier-naming)
         Ol_T_C * EEl_T_C_.inverse();  // NOLINT (readability-identifier-naming)
     left_arm_data.position_d_target_ = Ol_T_EEl_d.translation();
@@ -400,7 +400,7 @@ void DualArmCartesianImpedanceExampleController::publishCenteringPose() {
     Eigen::Affine3d Ol_T_EEl(Eigen::Matrix4d::Map(  // NOLINT (readability-identifier-naming)
         robot_state_left.O_T_EE.data()));           // NOLINT (readability-identifier-naming)
     Eigen::Affine3d Ol_T_C = Ol_T_EEl * EEl_T_C_;   // NOLINT (readability-identifier-naming)
-    tf::poseEigenToMsg(Ol_T_C, center_frame_pub_.msg_.pose);
+    center_frame_pub_.msg_.pose = tf2::toMsg(Ol_T_C);
     center_frame_pub_.msg_.header.frame_id = left_arm_id_ + "_link0";
     center_frame_pub_.unlockAndPublish();
   }

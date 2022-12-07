@@ -8,14 +8,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(catkin REQUIRED COMPONENTS
   controller_interface
   dynamic_reconfigure
-  eigen_conversions
   franka_hw
   franka_gripper
   geometry_msgs
   hardware_interface
   joint_limits_interface
-  tf
-  tf_conversions
+  tf2_ros
   tf2_eigen
   message_generation
   pluginlib
@@ -55,14 +53,11 @@ catkin_package(
   CATKIN_DEPENDS
     controller_interface
     dynamic_reconfigure
-    eigen_conversions
     franka_hw
     franka_gripper
     geometry_msgs
     hardware_interface
     joint_limits_interface
-    tf
-    tf_conversions
     message_runtime
     pluginlib
     realtime_tools

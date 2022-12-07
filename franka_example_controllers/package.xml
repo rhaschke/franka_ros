@@ -20,14 +20,12 @@
 
   <depend>controller_interface</depend>
   <depend>dynamic_reconfigure</depend>
-  <depend>eigen_conversions</depend>
   <depend>franka_hw</depend>
   <depend>franka_gripper</depend>
   <depend>geometry_msgs</depend>
   <depend>hardware_interface</depend>
   <depend>joint_limits_interface</depend>
-  <depend>tf</depend>
-  <depend>tf_conversions</depend>
+  <depend>tf2_ros</depend>
   <depend>tf2_eigen</depend>
   <depend>libfranka</depend>
   <depend>pluginlib</depend>
