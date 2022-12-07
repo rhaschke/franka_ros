@@ -9,6 +9,7 @@
 #include <franka/robot_state.h>
 #include <pluginlib/class_list_macros.h>
 #include <ros/ros.h>
+#include <tf2_eigen/tf2_eigen.h>
 
 #include <franka_example_controllers/pseudo_inversion.h>
 
@@ -223,10 +224,8 @@ void CartesianImpedanceExampleController::equilibriumPoseCallback(
     const geometry_msgs::PoseStampedConstPtr& msg) {
   std::lock_guard<std::mutex> position_d_target_mutex_lock(
       position_and_orientation_d_target_mutex_);
-  position_d_target_ << msg->pose.position.x, msg->pose.position.y, msg->pose.position.z;
-
-  orientation_d_target_.coeffs() << msg->pose.orientation.x, msg->pose.orientation.y,
-      msg->pose.orientation.z, msg->pose.orientation.w;
+  tf2::fromMsg(msg->pose.position, position_d_target_);
+  tf2::fromMsg(msg->pose.orientation, orientation_d_target_);
   if (orientation_d_.coeffs().dot(orientation_d_target_.coeffs()) < 0.0) {
     orientation_d_target_.coeffs() << -orientation_d_target_.coeffs();
   }

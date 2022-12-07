@@ -16,6 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
   joint_limits_interface
   tf
   tf_conversions
+  tf2_eigen
   message_generation
   pluginlib
   realtime_tools
