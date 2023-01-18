@@ -149,6 +149,9 @@ void CartesianImpedanceExampleController::update(const ros::Time& /*time*/,
   // Transform to base frame
   error.tail(3) = -transform.rotation() * error.tail(3);
 
+  double norm;
+  if ((norm = error.norm()) > 1e-2)
+    error *= 5e-2 / norm;
 
   // compute control
   // allocate variables
@@ -166,6 +169,10 @@ void CartesianImpedanceExampleController::update(const ros::Time& /*time*/,
   tau_nullspace.noalias() =
       (Eigen::MatrixXd::Identity(7, 7) - jacobian.transpose() * jacobian_transpose_pinv) *
       (nullspace_stiffness_ * (q_d_nullspace_ - q) - (2.0 * sqrt(nullspace_stiffness_)) * dq);
+
+  if ((norm = tau_nullspace.norm()) > 1e-1)
+    tau_nullspace *= 1e-1 / norm;
+
   // Desired torque
   tau_d.noalias() = tau_task + tau_nullspace + coriolis;
   // Saturate torque rate to avoid discontinuities
