@@ -15,6 +15,7 @@ marker_pose = PoseStamped()
 pose_pub = None
 # [[min_x, max_x], [min_y, max_y], [min_z, max_z]]
 position_limits = [[-0.6, 0.6], [-0.6, 0.6], [0.05, 0.9]]
+position_limits = [[-100, 100], [-100, 100], [-100, 100]]
 
 
 def publisher_callback(msg, link_name):
