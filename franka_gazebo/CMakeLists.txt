@@ -40,7 +40,7 @@ if(NOT Franka_FOUND)
 endif()
 find_package(Eigen3 REQUIRED)
 find_package(orocos_kdl REQUIRED)
-find_package(fmt)
+find_package(fmt REQUIRED)
 
 # merge Franka + catkin INCLUDE_DIRS in topological order
 list_insert_in_workspace_order(catkin_INCLUDE_DIRS ${Franka_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
